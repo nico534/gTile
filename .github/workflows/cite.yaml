@@ -14,8 +14,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         name: Checkout repository
-        with:
-          ref: main
       - name: Extract repoOwner and repoName
         run: |
           REPO_FULL_NAME="${{ github.repository }}"
