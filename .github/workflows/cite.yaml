@@ -43,6 +43,6 @@ jobs:
       - name: Create release
         uses: softprops/action-gh-release@v2
         id: create_release
-        width:
+        with:
           files: data-cite.xml
           body: Release from GitHub Action with datacite xml
