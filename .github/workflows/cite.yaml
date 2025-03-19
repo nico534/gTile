@@ -1,0 +1,48 @@
+name: Create release with DataCite XML
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+jobs:
+  createCite:
+    name: Create a DataCite XML
+    runs-on: ubuntu-latest
+
+    permissions:
+      # Give the default GITHUB_TOKEN write permission to commit and push the changed files back to the repository.
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout repository
+        with:
+          ref: main
+      - name: Extract repoOwner and repoName
+        run: |
+          REPO_FULL_NAME="${{ github.repository }}"
+          REPO_OWNER=$(echo "$REPO_FULL_NAME" | cut -d'/' -f1)
+          REPO_NAME=$(echo "$REPO_FULL_NAME" | cut -d'/' -f2)
+          echo "REPO_OWNER=$REPO_OWNER" >> $GITHUB_ENV
+          echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
+
+      - name: Get DataCite xml file
+        uses: nico534/github_datacite@v1
+        id: datacite-xml
+        with:
+          apiToken: ${{ secrets.GITHUB_TOKEN }}
+          repoOwner: ${{ env.REPO_OWNER }}
+          repoName: ${{ env.REPO_NAME }}
+
+      - name: Create data-cite xml file
+        uses: 1arp/create-a-file-action@0.4.5
+        with:
+          file: "data-cite.xml"
+          content: ${{ steps.datacite-xml.outputs.datacitexml }}
+
+      - name: Set latest tag as RELEASE_VERSION env
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        id: create_release
+        width:
+          files: data-cite.xml
+          body: Release from GitHub Action with datacite xml
